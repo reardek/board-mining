@@ -8,7 +8,7 @@ import re
 
 options = Options()
 options.headless = True
-driverChrome = webdriver.Chrome('/usr/bin/chromedriver', options=options)
+driverChrome = webdriver.Chrome('/usr/local/bin/chromedriver', options=options)
 
 def getHTMLdocument(url):
     response = requests.get(url)

@@ -1,26 +1,26 @@
-from typing import Optional
-from pydantic import BaseModel
-from motor.motor_tornado import MotorCollection
+from fastapi.responses import HTMLResponse
 import uvicorn
-from database.engine import engine
-from fastapi import FastAPI
-from odmantic import Model
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-class Test(Model):
-    key: str
+templates = Jinja2Templates(directory="templates")
 
-class Test2(BaseModel):
-    key: str
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse('base.html', {"request": request})
 
-a = Test()
+@app.get("/games", response_class=HTMLResponse)
+async def games(request: Request):
+    return templates.TemplateResponse('games.html.j2', {"request": request})
 
-@app.get("/")
-async def root():
-    doc = Test()
-    doc_id = await engine.save(doc)
-    return {"message": doc_id.id}
+@app.get("/find-game", response_class=HTMLResponse)
+async def findGame(request: Request):
+    return templates.TemplateResponse('games.html.j2', {"request": request})
 
 
 if __name__ == "__main__":
