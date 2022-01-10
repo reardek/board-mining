@@ -16,12 +16,12 @@ def getHTMLdocument(url):
     response = requests.get(url)
     return response.text
 
-def find_link_rebel():
+def find_link_rebel(game_name: str):
     base_url = 'https://www.rebel.pl'
     page = mechanical_browser.get(base_url)
     page.raise_for_status()
     search = mechanicalsoup.Form(page.soup.select_one(".form-search"))
-    search.input({"phrase": "Na skrzydłach"})
+    search.input({"phrase": game_name})
     
     search_result = mechanical_browser.submit(search, page.url)
     driver_chrome.get(search_result.url)
@@ -29,16 +29,37 @@ def find_link_rebel():
     products_soup = BeautifulSoup(driver_chrome.page_source, "html.parser")
     product_links = products_soup.find_all("div", attrs={"class": "product"})
     for link in product_links:
-        isBaseGameLink = base_url + link.get("data-url")
-        driver_chrome.get(isBaseGameLink)
+        game_link = base_url + str(link.get("data-url"))
+        driver_chrome.get(game_link)
         product_html = driver_chrome.page_source
         is_extension = product_html.find('Uwaga! To nie jest samodzielna gra!') == -1
-        print(f'{isBaseGameLink} : {is_extension}')
+        if is_extension:
+            return game_link
             
+def find_link_3trolle(game_name: str):
+    base_url = 'https://3trolle.pl'
+    page = mechanical_browser.get(base_url)
+    page.raise_for_status()
+    
+    search = mechanicalsoup.Form(page.soup.select_one("#searchbox"))
+    search.input({"search_query": game_name})
+    
+    search_result = mechanical_browser.submit(search, page.url)
+    driver_chrome.get(search_result.url)
+    
+    products_soup = BeautifulSoup(driver_chrome.page_source, "html.parser")
+    product_links = products_soup.find_all("a", attrs={"class": "product_img_link"})
+    
+    for link in product_links:
+        href = str(link.get("href"))
+        driver_chrome.get(href)
+        product_html = driver_chrome.page_source
+        is_extension = product_html.find('Uwaga! To nie jest samodzielna gra!') == -1
+        if is_extension:
+            return href
 
 
-find_link_rebel()
-def find_link_gry_bez_pradu():
+def find_link_gry_bez_pradu(game_name: str):
     base_url = "https://grybezpradu.eu"
 
     page = mechanical_browser.get(base_url)
@@ -47,7 +68,7 @@ def find_link_gry_bez_pradu():
     #ignore
     search = mechanicalsoup.Form(page.soup.select_one(".search-form"))
 
-    search.input({"search": "Na skrzydłach"})
+    search.input({"search": game_name})
 
     search_result = mechanical_browser.submit(search, page.url)
 
@@ -56,15 +77,15 @@ def find_link_gry_bez_pradu():
     products_soup = BeautifulSoup(products_page, "html.parser")
 
     for link in products_soup.find_all("a", attrs={"class": "prodimage"}):
-        isBaseGameLink = base_url + link.get("href")
+        game_link = base_url + str(link.get("href"))
 
-        driver_chrome.get(isBaseGameLink)
+        driver_chrome.get(game_link)
         html = driver_chrome.page_source
         product_soup = BeautifulSoup(html, "html.parser")
         description = product_soup.find('div', {"data-tab": 'box_description'})
         if description:
             description_text = description.get_text().lower()
             is_extention_words = ['dodatek', 'rozszerzenie']
-            isExtention = any([description_text.find(rf'{extension_word}') != -1 or isBaseGameLink.find(rf'{extension_word}') != -1 for extension_word in is_extention_words])
+            isExtention = any([description_text.find(rf'{extension_word}') != -1 or game_link.find(rf'{extension_word}') != -1 for extension_word in is_extention_words])
             if not isExtention:
-                return isBaseGameLink
+                return game_link
