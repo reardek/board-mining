@@ -2,5 +2,7 @@
   "python.languageServer": "Pylance",
   "python.analysis.logLevel": "Trace",
   "python.linting.mypyEnabled": true,
-  "python.linting.enabled": true
+  "python.linting.enabled": true,
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.typeCheckingMode": "basic"
 }

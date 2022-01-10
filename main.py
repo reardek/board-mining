@@ -3,7 +3,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-
+ 
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -16,12 +16,12 @@ async def root(request: Request):
 
 @app.get("/games", response_class=HTMLResponse)
 async def games(request: Request):
-    return templates.TemplateResponse('games.html.j2', {"request": request})
+    return templates.TemplateResponse('games.html', {"request": request})
 
 @app.get("/find-game", response_class=HTMLResponse)
 async def findGame(request: Request):
-    return templates.TemplateResponse('games.html.j2', {"request": request})
+    return templates.TemplateResponse('games.html', {"request": request})
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=5000, log_level="info")
+    uvicorn.run("main:app", host="127.0.0.1", port=5000, log_level="info", reload=True)
