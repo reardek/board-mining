@@ -5,7 +5,8 @@ from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from mechanical import find_link_3trolle, find_link_gry_bez_pradu, find_link_rebel
+from mechanical import BoardGameScrapper
+from database import engine
  
 
 app = FastAPI()
@@ -23,16 +24,14 @@ async def games(request: Request):
 
 @app.get("/find-game", response_class=HTMLResponse)
 async def findGame(request: Request, game: Optional[str] = None):
-    links = []
     if game:
-        if link := find_link_rebel(game):
-            links.append(link)
-        if link := find_link_3trolle(game):
-            links.append(link)
-        if link := find_link_gry_bez_pradu(game):
-            links.append(link)
-    
-    return templates.TemplateResponse('find_game.html', {"request": request, "links": links})
+        board_scrapper = BoardGameScrapper(game)
+        if links := board_scrapper.get_links():
+            if game_info := board_scrapper.get_info(links["rebel"]):
+                await engine.engine.save(game_info)
+            return templates.TemplateResponse('find_game.html', {"request": request, "ok": True})
+       
+    return templates.TemplateResponse('find_game.html', {"request": request })
 
 
 if __name__ == "__main__":

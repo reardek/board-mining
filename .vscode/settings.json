@@ -4,5 +4,6 @@
   "python.linting.mypyEnabled": true,
   "python.linting.enabled": true,
   "python.analysis.autoImportCompletions": true,
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "python.formatting.provider": "black"
 }

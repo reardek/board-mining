@@ -1,6 +1,14 @@
+from typing import TypedDict
 from .base import Base
 
-class BoardGame(Base):
-    name: str
-    price: float
-    category: str
+class BoardGameDetails(Base):
+    title: str
+    description: str
+    image: str
+    bgg_link: str
+
+class BoardGameLinks(TypedDict):
+    rebel: str
+    three_trolls: str
+    bez_pradu: str
+                

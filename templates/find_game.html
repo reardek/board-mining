@@ -3,22 +3,18 @@
 <div class="container">
   <form class="input-group" method="get">
     <div class="form-outline">
-      <input type="search" id="game-form" class="form-control" name="game" placeholder="Search"/>
+      <input
+        type="search"
+        id="game-form"
+        class="form-control"
+        name="game"
+        placeholder="Search"
+      />
     </div>
-    <button type="submit" class="btn btn-primary">
-      Search
-    </button>
-</form>
+    <button type="submit" class="btn btn-primary">Search</button>
+  </form>
 </div>
 
-{% if links %}
-<ul>
-    {% for link in links %}
-    <li>
-        <a href="{{ link }}">{{ link }}</a>
-    </li>
-    {% endfor %}
-</ul>
-{% endif %}
-
-{% endblock content %}
+{% if ok %}
+<span class="badge bg-success">Success</span>
+{% endif %} {% endblock content %}
