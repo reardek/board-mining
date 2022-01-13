@@ -1,7 +1,8 @@
 from typing import TypedDict
 from .base import Base
+from odmantic import Model
 
-class BoardGameDetails(Base):
+class BoardGameDetails(Model):
     title: str
     description: str
     image: str

@@ -28,8 +28,8 @@ async def findGame(request: Request, game: Optional[str] = None):
         board_scrapper = BoardGameScrapper(game)
         if links := board_scrapper.get_links():
             if game_info := board_scrapper.get_info(links["rebel"]):
-                await engine.engine.save(game_info)
-            return templates.TemplateResponse('find_game.html', {"request": request, "ok": True})
+                await engine.save(game_info)
+                return templates.TemplateResponse('find_game.html', {"request": request, "ok": True})
        
     return templates.TemplateResponse('find_game.html', {"request": request })
 
