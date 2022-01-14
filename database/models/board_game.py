@@ -1,15 +1,32 @@
-from typing import TypedDict
-from .base import Base
-from odmantic import Model
+from datetime import datetime
+from typing import Optional, TypedDict, List
 
-class BoardGameDetails(Model):
+from odmantic import EmbeddedModel, Model
+from .base import Base
+
+
+class BoardGamePriceHistory(EmbeddedModel):
+    date: datetime
+    shop: str
+    price: float
+
+
+class BoardGameLinks(EmbeddedModel):
+    rebel: str
+    three_trolls: str
+    bez_pradu: str
+
+
+class BggDetails(EmbeddedModel):
     title: str
     description: str
     image: str
     bgg_link: str
 
-class BoardGameLinks(TypedDict):
-    rebel: str
-    three_trolls: str
-    bez_pradu: str
-                
+
+class BoardGameDetails(Model):
+    bgg_details: BggDetails
+    shop_links: BoardGameLinks
+    available: Optional[bool]
+    current_price: Optional[float]
+    price_history: Optional[List[BoardGamePriceHistory]]

@@ -17,4 +17,8 @@
 
 {% if ok %}
 <span class="badge bg-success">Success</span>
-{% endif %} {% endblock content %}
+{% endif %}
+{% if fail %}
+<span class="badge bg-danger">Error</span>
+{% endif %}
+{% endblock content %}

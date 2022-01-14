@@ -1,25 +1,26 @@
 {% extends "base.html" %} {% block content %}
 
-
 <div class="container">
-<div class="row row-cols-md-4 g-4">
-
-{% for elem in range(6) %}
-<div class="col col-md-2">
-<div class="card">
-  <img src="{{ url_for('static', path='/img/terraforming-mars.jpg')}}" class="card-img-top" alt="terraforming-mars" width="40" />
-  <div class="card-body">
-    <h5 class="card-title">Card title</h5>
-    <p class="card-text">
-      Some quick example text to build on the card title and make up the bulk of
-      the card's content.
-    </p>
-    <a href="#" class="btn btn-primary">Go somewhere</a>
+  <div class="row row-cols-md-4 g-4">
+    {% for game in games %}
+    <div class="col col-md-2">
+      <div class="card">
+        <img
+          src="{{ game.bgg_details.image }}"
+          class="card-img-top"
+          alt="terraforming-mars"
+          width="40"
+        />
+        <div class="card-body">
+          <h5 class="card-title">{{ game.bgg_details.title }}</h5>
+          <p class="card-text">{{ game.bgg_details.description[:200] }}...</p>
+          <a href="{{ game.bgg_details.bgg_link }}" class="btn btn-primary"
+            >BoardGameGeek</a
+          >
+        </div>
+      </div>
+    </div>
+    {% endfor %}
   </div>
-</div>
-</div>
-{% endfor %}
-</div>
-
 </div>
 {% endblock %}

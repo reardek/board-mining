@@ -1,10 +1,13 @@
+import imp
 from bs4 import BeautifulSoup
 import mechanicalsoup
+from odmantic import AIOEngine
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from database.models.board_game import BoardGameDetails, BoardGameLinks
+from database.models.board_game import BggDetails, BoardGameLinks
+from database import engine
 
 options = Options()
 options.headless = True
@@ -52,9 +55,9 @@ class BoardGameScrapper:
             driver_chrome.get(game_link)
             product_html = driver_chrome.page_source
             is_extension = (
-                product_html.find("Uwaga! To nie jest samodzielna gra!") == -1
+                product_html.find("Uwaga! To nie jest samodzielna gra!") != -1 or product_html.find("Insert do gry") != -1
             )
-            if is_extension:
+            if not is_extension:
                 return game_link
 
     def _find_link_3trolle(self):
@@ -76,9 +79,9 @@ class BoardGameScrapper:
             driver_chrome.get(href)
             product_html = driver_chrome.page_source
             is_extension = (
-                product_html.find("Uwaga! To nie jest samodzielna gra!") == -1
+                product_html.find("Uwaga! To nie jest samodzielna gra!") != -1
             )
-            if is_extension:
+            if not is_extension:
                 return href
 
     def _find_link_gry_bez_pradu(self):
@@ -107,7 +110,7 @@ class BoardGameScrapper:
             description = product_soup.find("div", {"data-tab": "box_description"})
             if description:
                 description_text = description.get_text().lower()
-                is_extention_words = ["dodatek", "rozszerzenie"]
+                is_extention_words = ["dodatek", "rozszerzenie", "insert"]
                 isExtention = any(
                     [
                         description_text.find(rf"{extension_word}") != -1
@@ -148,7 +151,7 @@ class BoardGameScrapper:
         if bgg_image:
             bgg_image_link = bgg_image.find("img")
             if bgg_image_link:
-                return bgg_image_link["src"]  # type: ignore
+                return bgg_image_link["ng-src"]  # type: ignore
 
     def get_info(self, rebel_link: str):
         bgg_link = self._get_bgg_link(rebel_link)
@@ -161,10 +164,18 @@ class BoardGameScrapper:
         bgg_image = self._get_bgg_image(bgg_page)
 
         if bgg_link and bgg_description and bgg_title and bgg_image:
-            game = BoardGameDetails(
+            game = BggDetails(
                 title=bgg_title.get_text(),  # type: ignore
                 description=bgg_description.get_text(),
-                image=bgg_image,
+                image=bgg_image, # type: ignore
                 bgg_link=bgg_link,
             )
             return game
+
+class BoardGamePriceScrapper:
+    engine: AIOEngine
+
+    def __init__(self, engine: AIOEngine):
+        self.engine = engine
+
+    
