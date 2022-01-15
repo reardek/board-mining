@@ -1,11 +1,11 @@
 from typing import Optional
 from fastapi.responses import HTMLResponse
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from mechanical import BoardGameScrapper
+from mechanical import BoardGamePriceScrapper, BoardGameScrapper
 from database import engine
 from database.models.board_game import BoardGameDetails
 
@@ -29,13 +29,15 @@ async def games(request: Request):
 
 
 @app.get("/find-game", response_class=HTMLResponse)
-async def findGame(request: Request, game: Optional[str] = None):
+async def findGame(request: Request, game: Optional[str] = None, backgroundTasks: BackgroundTasks = BackgroundTasks()):
     if game:
         board_scrapper = BoardGameScrapper(game)
         if links := board_scrapper.get_links():
             if game_info := board_scrapper.get_info(links.rebel):
                 new_game = BoardGameDetails(bgg_details=game_info, shop_links=links)
                 await engine.save(new_game)
+                bg_find_price = BoardGamePriceScrapper(engine)
+                backgroundTasks.add_task(bg_find_price.find_prices, new_game)
                 return templates.TemplateResponse(
                     "find_game.html", {"request": request, "ok": True}
                 )

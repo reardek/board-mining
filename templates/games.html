@@ -18,6 +18,13 @@
             >BoardGameGeek</a
           >
         </div>
+        <div class="card-footer">
+          {% if game.available %}
+          <h5>{{ game.current_price }}</h5>
+          {% else %}
+          <h5>Not Available</h5>
+          {% endif %}
+        </div>
       </div>
     </div>
     {% endfor %}

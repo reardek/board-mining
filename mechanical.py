@@ -1,4 +1,6 @@
-import imp
+from datetime import datetime
+from typing import Optional
+from typing_extensions import TypedDict
 from bs4 import BeautifulSoup
 import mechanicalsoup
 from odmantic import AIOEngine
@@ -6,7 +8,7 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from database.models.board_game import BggDetails, BoardGameLinks
+from database.models.board_game import BggDetails, BoardGameDetails, BoardGameLinks, BoardGamePriceHistory
 from database import engine
 
 options = Options()
@@ -174,8 +176,94 @@ class BoardGameScrapper:
 
 class BoardGamePriceScrapper:
     engine: AIOEngine
+    
+    class PriceAvailable(TypedDict):
+        price: float
+        available: bool
 
     def __init__(self, engine: AIOEngine):
         self.engine = engine
+        
+    async def find_prices(self, game: BoardGameDetails):
+        rebel_price = self._get_rebel_price(game.shop_links.rebel)
+        three_trolls_price = self._get_three_trolls_price(game.shop_links.three_trolls)
+        gry_bez_pradu_price = self._get_gry_bez_pradu_price(game.shop_links.bez_pradu)
+        
+        lowest_price = 0.0
+        is_available = False
+        
+        if rebel_price:
+            price_history = BoardGamePriceHistory(**{"date": datetime.now(), "shop": "rebel", "price": rebel_price["price"]})
+            game.price_history.append(price_history)
+            
+            if is_available := rebel_price["available"]:   
+                lowest_price = rebel_price["price"]
+        
+        if three_trolls_price:
+            price_history = BoardGamePriceHistory(**{"date": datetime.now(), "shop": "three_trolls", "price": three_trolls_price["price"]})
+            game.price_history.append(price_history)
+            
+            
+            if three_trolls_price["available"]:
+                is_available = True
+                if three_trolls_price["price"] < lowest_price:
+                    lowest_price = three_trolls_price["price"]
+                
+            
+        if gry_bez_pradu_price:
+            price_history = BoardGamePriceHistory(**{"date": datetime.now(), "shop": "bez_pradu", "price": gry_bez_pradu_price["price"]})
+            game.price_history.append(price_history)
+            
+            if gry_bez_pradu_price["available"]:
+                is_available = True
+                if gry_bez_pradu_price["price"] < lowest_price:
+                    lowest_price = gry_bez_pradu_price["price"]
+                    
+        game.current_price = lowest_price
+        game.available = is_available
+        
+        await self.engine.save(game)
+        
+        
+    
+    def _get_rebel_price(self, url: str) -> Optional[PriceAvailable]:
+        res = requests.get(url)
+        html = res.text
+        rebel_soup = BeautifulSoup(html, "html.parser")
+        price_tag = rebel_soup.find("span", {"class": "price"})
+        if price_tag:
+            price_str = price_tag.get("content") # type: ignore
+            if price_str:
+                price = float(price_str) # type: ignore
+                available = html.find("Produkt niedostępny") == -1
+                
+                return {"price": price, "available": available}
+        return None
+        
+    def _get_three_trolls_price(self, url: str) -> Optional[PriceAvailable]:
+        res = requests.get(url)
+        html = res.text
+        rebel_soup = BeautifulSoup(html, "html.parser")
+        price_tag = rebel_soup.find("span", {"id": "our_price_display"})
+        if price_tag:
+            price_str = price_tag.get("content") # type: ignore
+            price = float(price_str) # type: ignore
+            available = html.find("produkt niedostępny") == -1
+            
+            return {"price": price, "available": available}
+        return None
+    
+    def _get_gry_bez_pradu_price(self, url: str) -> Optional[PriceAvailable]:
+        res = requests.get(url)
+        html = res.text
+        rebel_soup = BeautifulSoup(html, "html.parser")
+        price_tag = rebel_soup.find("span", {"em": "main-price"})
+        if price_tag:
+            price_text = price_tag.get_text()
+            price = float(price_text.replace("zł", "").strip().replace(",", "."))
+            available = html.find("Dostępny") != -1
+            
+            return {"price": price, "available": available}
+        return None
 
     

@@ -29,4 +29,4 @@ class BoardGameDetails(Model):
     shop_links: BoardGameLinks
     available: Optional[bool]
     current_price: Optional[float]
-    price_history: Optional[List[BoardGamePriceHistory]]
+    price_history: List[BoardGamePriceHistory] = []
